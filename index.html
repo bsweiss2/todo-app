@@ -24,10 +24,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    h1 { text-align: center; margin-bottom: 20px; }
 
     .input-row {
       display: flex;
@@ -42,9 +39,7 @@
       font-size: 15px;
     }
 
-    input {
-      flex: 1;
-    }
+    input { flex: 1; }
 
     button {
       padding: 10px 13px;
@@ -56,9 +51,7 @@
       font-size: 15px;
     }
 
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
 
     h2 {
       font-size: 18px;
@@ -68,17 +61,9 @@
       padding-bottom: 5px;
     }
 
-    .today-title {
-      color: #dc2626;
-    }
-
-    .tomorrow-title {
-      color: #ca8a04;
-    }
-
-    .near-future-title {
-      color: #16a34a;
-    }
+    .today-title { color: #dc2626; }
+    .tomorrow-title { color: #ca8a04; }
+    .near-future-title { color: #16a34a; }
 
     ul {
       list-style: none;
@@ -122,13 +107,8 @@
       flex: 1;
     }
 
-    .delete-btn {
-      background: #ef4444;
-    }
-
-    .delete-btn:hover {
-      background: #dc2626;
-    }
+    .delete-btn { background: #ef4444; }
+    .delete-btn:hover { background: #dc2626; }
 
     .empty {
       color: gray;
@@ -216,6 +196,37 @@
       return "task-today";
     }
 
+    function makePriorityDropdown(task, index) {
+      const moveSelect = document.createElement("select");
+
+      const todayOption = document.createElement("option");
+      todayOption.value = "today";
+      todayOption.textContent = "Today";
+
+      const tomorrowOption = document.createElement("option");
+      tomorrowOption.value = "tomorrow";
+      tomorrowOption.textContent = "Tomorrow";
+
+      const nearFutureOption = document.createElement("option");
+      nearFutureOption.value = "nearFuture";
+      nearFutureOption.textContent = "Near Future";
+
+      moveSelect.appendChild(todayOption);
+      moveSelect.appendChild(tomorrowOption);
+      moveSelect.appendChild(nearFutureOption);
+
+      // Important: set the dropdown value AFTER adding the options.
+      moveSelect.value = task.priority;
+
+      moveSelect.onchange = function() {
+        tasks[index].priority = moveSelect.value;
+        saveTasks();
+        displayTasks();
+      };
+
+      return moveSelect;
+    }
+
     function displayTasks() {
       clearLists();
 
@@ -243,30 +254,7 @@
           displayTasks();
         };
 
-        const moveSelect = document.createElement("select");
-        moveSelect.value = task.priority;
-
-        const todayOption = document.createElement("option");
-        todayOption.value = "today";
-        todayOption.textContent = "Today";
-
-        const tomorrowOption = document.createElement("option");
-        tomorrowOption.value = "tomorrow";
-        tomorrowOption.textContent = "Tomorrow";
-
-        const nearFutureOption = document.createElement("option");
-        nearFutureOption.value = "nearFuture";
-        nearFutureOption.textContent = "Near Future";
-
-        moveSelect.appendChild(todayOption);
-        moveSelect.appendChild(tomorrowOption);
-        moveSelect.appendChild(nearFutureOption);
-
-        moveSelect.onchange = function() {
-          tasks[index].priority = moveSelect.value;
-          saveTasks();
-          displayTasks();
-        };
+        const moveSelect = makePriorityDropdown(task, index);
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
