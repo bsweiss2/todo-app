@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Priority To-Do List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 50px;
+    }
+
+    .app {
+      background: white;
+      width: 460px;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    input, select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input {
+      flex: 1;
+    }
+
+    button {
+      padding: 10px 13px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 22px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+
+    .today-title {
+      color: #dc2626;
+    }
+
+    .tomorrow-title {
+      color: #ca8a04;
+    }
+
+    .near-future-title {
+      color: #16a34a;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      background: white;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-today {
+      border: 3px solid #dc2626;
+      background: #fee2e2;
+    }
+
+    .task-tomorrow {
+      border: 3px solid #facc15;
+      background: #fef9c3;
+    }
+
+    .task-nearFuture {
+      border: 3px solid #22c55e;
+      background: #dcfce7;
+    }
+
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .task-text {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .delete-btn {
+      background: #ef4444;
+    }
+
+    .delete-btn:hover {
+      background: #dc2626;
+    }
+
+    .empty {
+      color: gray;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 13px;
+      color: gray;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>My To-Do List</h1>
+
+    <div class="input-row">
+      <input id="taskInput" type="text" placeholder="Enter a task..." />
+
+      <select id="priorityInput">
+        <option value="today">Today</option>
+        <option value="tomorrow">Tomorrow</option>
+        <option value="nearFuture">Near Future</option>
+      </select>
+
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <h2 class="today-title">🔴 Today</h2>
+    <ul id="todayList"></ul>
+
+    <h2 class="tomorrow-title">🟡 Tomorrow</h2>
+    <ul id="tomorrowList"></ul>
+
+    <h2 class="near-future-title">🟢 Near Future</h2>
+    <ul id="nearFutureList"></ul>
+
+    <p class="hint">Click a task to mark it complete. Use the dropdown on a task to move it.</p>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    tasks = tasks.map(function(task) {
+      if (!task.priority) {
+        task.priority = "today";
+      }
+      return task;
+    });
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function clearLists() {
+      document.getElementById("todayList").innerHTML = "";
+      document.getElementById("tomorrowList").innerHTML = "";
+      document.getElementById("nearFutureList").innerHTML = "";
+    }
+
+    function getListId(priority) {
+      if (priority === "tomorrow") {
+        return "tomorrowList";
+      }
+
+      if (priority === "nearFuture") {
+        return "nearFutureList";
+      }
+
+      return "todayList";
+    }
+
+    function getTaskClass(priority) {
+      if (priority === "tomorrow") {
+        return "task-tomorrow";
+      }
+
+      if (priority === "nearFuture") {
+        return "task-nearFuture";
+      }
+
+      return "task-today";
+    }
+
+    function displayTasks() {
+      clearLists();
+
+      let taskCounts = {
+        today: 0,
+        tomorrow: 0,
+        nearFuture: 0
+      };
+
+      tasks.forEach(function(task, index) {
+        const li = document.createElement("li");
+        li.classList.add(getTaskClass(task.priority));
+
+        if (task.completed) {
+          li.classList.add("completed");
+        }
+
+        const span = document.createElement("span");
+        span.textContent = task.text;
+        span.className = "task-text";
+
+        span.onclick = function() {
+          tasks[index].completed = !tasks[index].completed;
+          saveTasks();
+          displayTasks();
+        };
+
+        const moveSelect = document.createElement("select");
+        moveSelect.value = task.priority;
+
+        const todayOption = document.createElement("option");
+        todayOption.value = "today";
+        todayOption.textContent = "Today";
+
+        const tomorrowOption = document.createElement("option");
+        tomorrowOption.value = "tomorrow";
+        tomorrowOption.textContent = "Tomorrow";
+
+        const nearFutureOption = document.createElement("option");
+        nearFutureOption.value = "nearFuture";
+        nearFutureOption.textContent = "Near Future";
+
+        moveSelect.appendChild(todayOption);
+        moveSelect.appendChild(tomorrowOption);
+        moveSelect.appendChild(nearFutureOption);
+
+        moveSelect.onchange = function() {
+          tasks[index].priority = moveSelect.value;
+          saveTasks();
+          displayTasks();
+        };
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "delete-btn";
+
+        deleteButton.onclick = function() {
+          tasks.splice(index, 1);
+          saveTasks();
+          displayTasks();
+        };
+
+        li.appendChild(span);
+        li.appendChild(moveSelect);
+        li.appendChild(deleteButton);
+
+        document.getElementById(getListId(task.priority)).appendChild(li);
+        taskCounts[task.priority]++;
+      });
+
+      showEmptyMessages(taskCounts);
+    }
+
+    function showEmptyMessages(taskCounts) {
+      if (taskCounts.today === 0) {
+        document.getElementById("todayList").innerHTML = "<p class='empty'>No tasks for today.</p>";
+      }
+
+      if (taskCounts.tomorrow === 0) {
+        document.getElementById("tomorrowList").innerHTML = "<p class='empty'>No tasks for tomorrow.</p>";
+      }
+
+      if (taskCounts.nearFuture === 0) {
+        document.getElementById("nearFutureList").innerHTML = "<p class='empty'>No near future tasks.</p>";
+      }
+    }
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const priorityInput = document.getElementById("priorityInput");
+      const taskText = input.value.trim();
+
+      if (taskText === "") {
+        alert("Please enter a task.");
+        return;
+      }
+
+      tasks.push({
+        text: taskText,
+        completed: false,
+        priority: priorityInput.value
+      });
+
+      input.value = "";
+      saveTasks();
+      displayTasks();
+    }
+
+    document.getElementById("taskInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
+
+    saveTasks();
+    displayTasks();
+  </script>
+</body>
+</html>
